@@ -1,8 +1,6 @@
 import { BaseField, BaseValidationStates } from "./helpers/validationTypes";
-import { ArrayField } from "./types/array";
-import { NumberField } from "./types/number";
-import { ObjectField } from "./types/object";
-import { StringField } from "./types/string";
+
+import type React from "react";
 
 type ValidationFunction<T> = (value?: T) => void;
 type FieldValidation<T> = {
@@ -10,12 +8,24 @@ type FieldValidation<T> = {
   function: ValidationFunction<T>;
 };
 
+interface ComponentType {
+  name: string;
+  component:
+    | React.FC
+    | React.ComponentClass
+    | React.Component
+    | React.JSX.Element;
+}
+
 export class Field<T, K extends BaseValidationStates> implements BaseField {
   protected validations: FieldValidation<T>[] = [];
   protected appliedValidations: K = {} as K;
-  protected name: string;
-  protected label: string;
-  protected type!: string;
+  protected _relations?: string[];
+  protected _name: string;
+  protected _label: string;
+  protected _type!: string;
+  protected _initialValue?: T;
+  protected _component?: ComponentType;
 
   constructor({
     name,
@@ -26,10 +36,10 @@ export class Field<T, K extends BaseValidationStates> implements BaseField {
     label: string;
     type?: string;
   }) {
-    this.name = name;
-    this.label = label;
+    this._name = name;
+    this._label = label;
     if (type) {
-      this.type = type;
+      this._type = type;
     }
   }
 
@@ -41,14 +51,14 @@ export class Field<T, K extends BaseValidationStates> implements BaseField {
 
   required(message?: string) {
     if (this.appliedValidations.required) {
-      throw new Error(`${this.label} is already required.`);
+      throw new Error(`${this._label} is already required.`);
     }
     this.validations.push({
       name: "required",
       function: (value?: T) => {
         const errorMessage =
           message?.replace("{value}", String(value)) ||
-          `${this.label} is required.`;
+          `${this._label} is required.`;
         if (!value) {
           throw new Error(errorMessage);
         }
@@ -57,42 +67,62 @@ export class Field<T, K extends BaseValidationStates> implements BaseField {
     this.appliedValidations.required = true;
     return this;
   }
-}
 
-class CMSField {
-  private _name: string;
-  private _label: string;
-  field: Field<any, Partial<BaseValidationStates>>;
-
-  constructor({ name, label }: { name: string; label: string }) {
-    this._name = name;
-    this._label = label;
-    this.field = new Field({ name, label });
+  setInitialValue(value: T) {
+    this._initialValue = value;
+    return this;
   }
+
+  setRelations(relation: string[]) {
+    for (const rel in relation) {
+      if (this._relations?.includes(rel)) {
+        throw new Error(`${this._label} already has a relation with ${rel}.`);
+      }
+    }
+
+    if (!this._relations) {
+      this._relations = [...relation];
+    } else {
+      this._relations = [...this._relations, ...relation];
+    }
+
+    return this;
+  }
+
+  setComponent(component: ComponentType) {
+    this._component = component;
+    return this;
+  }
+
   get name() {
     return this._name;
   }
+
   get label() {
     return this._label;
   }
 
-  string() {
-    return new StringField(this.field);
+  get type() {
+    return this._type;
   }
 
-  number() {
-    return new NumberField(this.field);
+  get validationStates() {
+    return this.appliedValidations;
   }
 
-  array() {
-    return new ArrayField(this.field);
+  get validationFunctions() {
+    return this.validations;
   }
 
-  object(objectShape: object) {
-    return new ObjectField(this.field, objectShape);
+  get relations() {
+    return this._relations;
   }
-}
 
-export function cms({ name, label }: { name: string; label: string }) {
-  return new CMSField({ name, label });
+  get initialValue() {
+    return this._initialValue;
+  }
+
+  get component() {
+    return this._component;
+  }
 }

@@ -1,16 +1,5 @@
 import { Field } from "../field";
-import {
-  EmailValidation,
-  IPv4Validation,
-  IPv6Validation,
-  LengthValidation,
-  MaxLengthValidation,
-  MinLengthValidation,
-  RegexValidation,
-  StringValidationStates,
-  URLValidation,
-  UUIDValidation,
-} from "../helpers/validationTypes";
+import { StringValidationStates } from "../helpers/validationTypes";
 
 const regexEmail =
   /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
@@ -27,15 +16,27 @@ const regexIpv4 =
 const regexIpv6 =
   /^(([a-f0-9]{1,4}:){7}|::([a-f0-9]{1,4}:){0,6}|([a-f0-9]{1,4}:){1}:([a-f0-9]{1,4}:){0,5}|([a-f0-9]{1,4}:){2}:([a-f0-9]{1,4}:){0,4}|([a-f0-9]{1,4}:){3}:([a-f0-9]{1,4}:){0,3}|([a-f0-9]{1,4}:){4}:([a-f0-9]{1,4}:){0,2}|([a-f0-9]{1,4}:){5}:([a-f0-9]{1,4}:){0,1})([a-f0-9]{1,4}|(((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2}))\.){3}((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2})))$/;
 
-export function create(field: Field<any, Partial<StringValidationStates>>) {
+export function create(field: Field<any, StringValidationStates>) {
   return new StringField(field);
 }
 
-export class StringField
-  extends Field<string, StringValidationStates>
-  implements StringField
+/**
+ * Represents a string field with validation rules.
+ * @template T - The type of the field value.
+ * @template V - The type of the validation states.
+ */
+export class StringField<
+    T extends string = string,
+    V extends StringValidationStates = StringValidationStates
+  >
+  extends Field<T, V>
+  implements StringField<T, V>
 {
-  constructor(field: Field<any, StringValidationStates>) {
+  /**
+   * Creates a new instance of the StringField class.
+   * @param field - The field to be validated.
+   */
+  constructor(field: Field<any, V>) {
     super({
       name: field["name"],
       label: field["label"],
@@ -52,7 +53,14 @@ export class StringField
     });
   }
 
-  minLength(length: number, message?: string) {
+  /**
+   * Adds a validation rule to check the minimum length of the string.
+   * @param length - The minimum length of the string.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   * @throws An error if the minimum length validation is already set.
+   */
+  minLength(length: number, message?: string): this {
     if (this.appliedValidations.minLength) {
       throw new Error(`${this.label}'s min length is already set.`);
     }
@@ -71,7 +79,14 @@ export class StringField
     return this;
   }
 
-  maxLength(length: number, message?: string) {
+  /**
+   * Adds a validation rule to check the maximum length of the string.
+   * @param length - The maximum length of the string.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   * @throws An error if the maximum length validation is already set.
+   */
+  maxLength(length: number, message?: string): this {
     if (this.appliedValidations.maxLength) {
       throw new Error(`${this.label}'s max length is already set.`);
     }
@@ -89,7 +104,14 @@ export class StringField
     return this;
   }
 
-  length(length: number, message?: string) {
+  /**
+   * Adds a validation rule to check the exact length of the string.
+   * @param length - The exact length of the string.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   * @throws An error if the length validation is already set.
+   */
+  length(length: number, message?: string): this {
     if (this.appliedValidations.length) {
       throw new Error(`${this.label}'s length is already set.`);
     }
@@ -107,7 +129,12 @@ export class StringField
     return this;
   }
 
-  email(message?: string) {
+  /**
+   * Adds a validation rule to check if the string is a valid email address.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   */
+  email(message?: string): this {
     this.validations.push({
       name: "email",
       function: (value) => {
@@ -122,7 +149,13 @@ export class StringField
     return this;
   }
 
-  url(message?: string) {
+  /**
+   * Adds a validation rule to check if the string is a valid URL.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   * @throws An error if the URL validation is already set.
+   */
+  url(message?: string): this {
     if (this.appliedValidations.url) {
       throw new Error(`${this.label}'s URL validation is already set.`);
     }
@@ -140,7 +173,13 @@ export class StringField
     return this;
   }
 
-  uuid(message?: string) {
+  /**
+   * Adds a validation rule to check if the string is a valid UUID.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   * @throws An error if the UUID validation is already set.
+   */
+  uuid(message?: string): this {
     if (this.appliedValidations.uuid) {
       throw new Error(`${this.label}'s UUID validation is already set.`);
     }
@@ -158,7 +197,13 @@ export class StringField
     return this;
   }
 
-  ipv4(message?: string) {
+  /**
+   * Adds a validation rule to check if the string is a valid IPv4 address.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   * @throws An error if the IPv4 validation is already set.
+   */
+  ipv4(message?: string): this {
     if (this.appliedValidations.ipv4) {
       throw new Error(`${this.label}'s IPv4 validation is already set.`);
     }
@@ -176,7 +221,13 @@ export class StringField
     return this;
   }
 
-  ipv6(message?: string) {
+  /**
+   * Adds a validation rule to check if the string is a valid IPv6 address.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   * @throws An error if the IPv6 validation is already set.
+   */
+  ipv6(message?: string): this {
     if (this.appliedValidations.ipv6) {
       throw new Error(`${this.label}'s IPv6 validation is already set.`);
     }
@@ -194,7 +245,14 @@ export class StringField
     return this;
   }
 
-  regex(regex: RegExp, message?: string) {
+  /**
+   * Adds a validation rule to check if the string matches a given regular expression.
+   * @param regex - The regular expression to match against.
+   * @param message - The error message to be displayed if the validation fails.
+   * @returns The StringField instance.
+   * @throws An error if the regex validation is already set.
+   */
+  regex(regex: RegExp, message?: string): this {
     if (this.appliedValidations.regex) {
       throw new Error(`${this.label}'s regex validation is already set.`);
     }
